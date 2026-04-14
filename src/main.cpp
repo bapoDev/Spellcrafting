@@ -1,8 +1,46 @@
-SKSE_PLUGIN_LOAD(const SKSE::LoadInterface* a_skse)
-{
-	SKSE::Init(a_skse);
+#include <SKSE/SKSE.h>
+#include <RE/Skyrim.h>
+#include "utils.h"
 
-	REX::INFO("Hello World!");
+
+void WelcomeMessage()
+{
+	RE::PlayerCharacter* player = RE::PlayerCharacter::GetSingleton();
+	std::string msg;
+	if (player)
+	{
+		msg = std::format("Player loaded {}", player->GetDisplayFullName());
+	}
+	else {
+		msg = std::format("Player singleton was null after load... weird...");
+	}
+	RE::SendHUDMessage::ShowHUDMessage(msg.c_str());
+}
+
+
+void OnMessage(SKSE::MessagingInterface::Message* message)
+{
+	if (message->type == SKSE::MessagingInterface::kInputLoaded)
+	{
+
+	}
+	if (message->type == SKSE::MessagingInterface::kPostLoadGame)
+	{
+		SKSE::GetTaskInterface()->AddTask([]()
+			{
+				WelcomeMessage();
+			});
+	}
+}
+
+
+SKSEPluginLoad(const SKSE::LoadInterface* skse) {
+	SKSE::Init(skse);
+
+	REX::INFO("Plugin loaded!");
+
+	auto* messagingInterface = SKSE::GetMessagingInterface();
+	messagingInterface->RegisterListener(OnMessage);
 
 	return true;
 }
