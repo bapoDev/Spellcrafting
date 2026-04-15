@@ -1,6 +1,8 @@
 #include <SKSE/SKSE.h>
 #include <RE/Skyrim.h>
 #include "utils.h"
+#include "ui.h"
+#include "hooks.h"
 
 
 void WelcomeMessage()
@@ -22,7 +24,8 @@ void OnMessage(SKSE::MessagingInterface::Message* message)
 {
 	if (message->type == SKSE::MessagingInterface::kInputLoaded)
 	{
-
+		Init_ImGui();
+		InstallHooks();
 	}
 	if (message->type == SKSE::MessagingInterface::kPostLoadGame)
 	{
