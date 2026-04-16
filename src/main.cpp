@@ -24,7 +24,8 @@ void OnMessage(SKSE::MessagingInterface::Message* message)
 {
 	if (message->type == SKSE::MessagingInterface::kInputLoaded)
 	{
-		Init_ImGui();
+		SKSE::AllocTrampoline(1 << 7);
+		UI::Init_ImGui();
 		InstallHooks();
 	}
 	if (message->type == SKSE::MessagingInterface::kPostLoadGame)
