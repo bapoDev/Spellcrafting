@@ -1,3 +1,5 @@
+#include "utils.h"
+
 /**
 * Creates a spell with custom values
 * baseSpell : the spell it's based off of
@@ -5,10 +7,19 @@
 *
 * returns true if the spell was correctly created, false otherwise
 */
-RE::SpellItem* CreateSpell(const char* name, RE::Effect* effect)
+void CreateSpell(const char* name, RE::Effect* effect, int magnitude, int area, int duration)
 {
 	RE::PlayerCharacter* player = RE::PlayerCharacter::GetSingleton();
-	return nullptr;
+	auto spellFactory = RE::IFormFactory::GetConcreteFormFactoryByType<RE::SpellItem>();
+
+	RE::SpellItem* newSpell = spellFactory->Create();
+	newSpell->SetFullName(name);
+	newSpell->effects.push_front(effect);
+	newSpell->effects[0]->SetMagnitude(magnitude);
+	newSpell->effects[0]->SetDuration(duration);
+	newSpell->SetCastingType(RE::MagicSystem::CastingType::kFireAndForget); // Testing only TODO: Repalce
+
+	RE::PlayerCharacter::GetSingleton()->AddSpell(newSpell);
 }
 
 std::vector<RE::Effect*> GetPlayerKnownEffects()

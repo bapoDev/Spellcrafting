@@ -22,9 +22,10 @@ void WelcomeMessage()
 
 void OnMessage(SKSE::MessagingInterface::Message* message)
 {
-	if (message->type == SKSE::MessagingInterface::kInputLoaded)
+	if (message->type == SKSE::MessagingInterface::kDataLoaded)
 	{
-		SKSE::AllocTrampoline(1 << 7);
+		SKSE::AllocTrampoline(256);
+
 		UI::Init_ImGui();
 		InstallHooks();
 	}
@@ -33,6 +34,7 @@ void OnMessage(SKSE::MessagingInterface::Message* message)
 		SKSE::GetTaskInterface()->AddTask([]()
 			{
 				WelcomeMessage();
+				UI::SpellcraftingMenu::Register();
 			});
 	}
 }
