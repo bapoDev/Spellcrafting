@@ -71,11 +71,9 @@ struct IDXGISwapChain_Present {
 
 struct InputHook {
 	static void thunk(RE::BSTEventSource<RE::InputEvent*>* a_source, RE::InputEvent* const* a_event) {
-		REX::INFO("Successfully intercepted the code");
 		static RE::InputEvent* const dummy[]{ nullptr };
 		UI::ProcessInput(a_event);
 		func(a_source, UI::isOpen ? dummy : a_event);
-		REX::INFO("Succesfully passed the function");
 	}
 	static inline REL::Relocation<decltype(thunk)> func;
 };

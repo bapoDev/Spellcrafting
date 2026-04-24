@@ -1,5 +1,6 @@
 #include <SKSE/SKSE.h>
 #include <RE/Skyrim.h>
+
 #include "utils.h"
 #include "ui.h"
 #include "hooks.h"
@@ -35,6 +36,7 @@ void OnMessage(SKSE::MessagingInterface::Message* message)
 			{
 				WelcomeMessage();
 				UI::SpellcraftingMenu::Register();
+				//DumpEveryPlayerEffect();
 			});
 	}
 }

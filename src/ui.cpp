@@ -35,6 +35,7 @@ void UI::Render_Menu()
 	static int area = 0;
 	static int duration = 0;
 	static char buf[100] = "";
+	static bool isHostile = false;
 
 	if (ImGui::IsWindowAppearing())
 	{
@@ -43,18 +44,19 @@ void UI::Render_Menu()
 		magnitude = 0;
 		area = 0;
 		duration = 0;
+		isHostile = false;
 	}
 
 	ImGui::Text("Holy shit, it actually works!");
 	
 	ImGui::InputText("Spell Name", buf, 100);
 
-	if (ImGui::BeginListBox("listbox 1"))
+	if (ImGui::BeginListBox("Effect List"))
 	{
 		for (int n = 0; n < effects.size(); n++)
 		{
 			const bool is_selected = (effect_selected_idx == n);
-			if (ImGui::Selectable(effects[n]->baseEffect->GetFullName(), is_selected))
+			if (ImGui::Selectable(effects[n]->GetFullName(), is_selected))
 				effect_selected_idx = n;
 
 			if (is_selected)
@@ -62,13 +64,58 @@ void UI::Render_Menu()
 		}
 		ImGui::EndListBox();
 	}
+
+	const char* castingTypeList[] = { "Self", "Touch", "Aimed", "Target Actor", "Target Location", "Total" };
+	static int castingType_selected_idx = 0;
+
+	const char* defaultCT = castingTypeList[castingType_selected_idx];
+	if (ImGui::BeginCombo("Casting Type", defaultCT))
+	{
+		for (int n = 0; n < IM_COUNTOF(castingTypeList); n++)
+		{
+			const bool is_selected = (castingType_selected_idx == n);
+			if (ImGui::Selectable(castingTypeList[n], is_selected))
+				castingType_selected_idx = n;
+
+			if (is_selected)
+				ImGui::SetItemDefaultFocus();
+		}
+		ImGui::EndCombo();
+	}
+
+	const char* deliveryList[] = { "Constant Effect", "Fire and Forget", "Concentration" };
+	static int delivery_selected_idx = 0;
+
+	const char* defaultDelivery = deliveryList[delivery_selected_idx];
+	if (ImGui::BeginCombo("Delivery", defaultDelivery))
+	{
+		for (int n = 0; n < IM_COUNTOF(deliveryList); n++)
+		{
+			const bool is_selected = (delivery_selected_idx == n);
+			if (ImGui::Selectable(deliveryList[n], is_selected))
+				delivery_selected_idx = n;
+
+			if (is_selected)
+				ImGui::SetItemDefaultFocus();
+		}
+		ImGui::EndCombo();
+	}
+
 	
 	ImGui::SliderInt("Magnitude", &magnitude, 0, 100);
 	ImGui::SliderInt("Area", &area, 0, 100);
 	ImGui::SliderInt("Duration", &duration, 0, 100);
 
+
 	if (ImGui::Button("Create Spell")) {
-		CreateSpell(buf, effects[effect_selected_idx], magnitude, area, duration);
+		CreateSpell(buf,
+			effects[effect_selected_idx],
+			static_cast<RE::MagicSystem::CastingType>(castingType_selected_idx),
+			static_cast<RE::MagicSystem::Delivery>(delivery_selected_idx),
+			magnitude,
+			area,
+			duration
+		);
 	}
 
 	if (ImGui::Button("Close Menu")) {
