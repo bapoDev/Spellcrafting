@@ -53,11 +53,15 @@ void UI::Render_Menu()
 
 	if (ImGui::BeginListBox("Effect List"))
 	{
+		static ImGuiTextFilter filter;
+
+		filter.Draw("Search...");
 		for (int n = 0; n < effects.size(); n++)
 		{
 			const bool is_selected = (effect_selected_idx == n);
-			if (ImGui::Selectable(effects[n]->GetFullName(), is_selected))
-				effect_selected_idx = n;
+			if (filter.PassFilter(effects[n]->GetFullName()))
+				if (ImGui::Selectable(effects[n]->GetFullName(), is_selected))
+					effect_selected_idx = n;
 
 			if (is_selected)
 				ImGui::SetItemDefaultFocus();
@@ -118,9 +122,12 @@ void UI::Render_Menu()
 		);
 	}
 
-	if (ImGui::Button("Close Menu")) {
+	if (ImGui::Button("Close Menu"))
 		UI::SpellcraftingMenu::Toggle();
-	}
+	
+
+	if (ImGui::Button("Dump All Effects in log"))
+		DumpEveryPlayerEffect();
 
 	ImGui::End();
 }

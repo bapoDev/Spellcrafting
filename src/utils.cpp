@@ -2,6 +2,7 @@
 
 static const char* castingNames[] = { "Self", "Touch", "Aimed", "TargetActor", "TargetLocation", "Total"};
 static const char* deliveryNames[] = { "ConstantEffect", "FireAndForget", "Concentration", "Scroll" };
+static const char* spellTypeNames[] = { "kSpell", "kDisease", "kPower", "kLesserPower", "kAbility", "kPoison", "kEnchantment", "kPotion" };
 
 
 void CreateSpell(const char* name, RE::EffectSetting* effect, RE::MagicSystem::CastingType castingType, RE::MagicSystem::Delivery delivery, int magnitude, int area, int duration)
@@ -37,7 +38,7 @@ std::vector<RE::EffectSetting*> GetPlayerKnownEffects()
 	auto* player = RE::PlayerCharacter::GetSingleton();
 	if (!player) return {};
 	
-	std::unordered_set<RE::EffectSetting*> effectsSet;
+	std::unordered_set<const char*> effectsSet;
 	effectsSet.reserve(player->addedSpells.size());
 
 	std::vector<RE::EffectSetting*> effectsVector;
@@ -46,13 +47,14 @@ std::vector<RE::EffectSetting*> GetPlayerKnownEffects()
 	for (auto spell : player->addedSpells)
 	{
 		if (!spell) continue;
+		if (spell->GetSpellType() != RE::MagicSystem::SpellType::kSpell) continue;
 
 		for (auto effect : spell->effects)
 		{
 			if (!effect || !effect->baseEffect || strlen(effect->baseEffect->GetFullName()) == 0) continue;
-			if (effectsSet.find(effect->baseEffect) != effectsSet.end()) continue;
+			if (effectsSet.find(effect->baseEffect->GetFullName()) != effectsSet.end()) continue;
 
-			effectsSet.insert(effect->baseEffect);
+			effectsSet.insert(effect->baseEffect->GetFullName());
 			effectsVector.push_back(effect->baseEffect);
 		}
 	}
@@ -73,17 +75,23 @@ void DumpEveryPlayerEffect()
 
 	for (auto spell : player->addedSpells)
 	{
+		if (!spell) continue;
+		if (spell->GetSpellType() == RE::MagicSystem::SpellType::kSpell) continue;
 		REX::INFO("--------------------------------------------------------------------------------------------");
 		REX::INFO("Spell Name: {}", spell->GetFullName());
 
 		auto castingName = castingNames[static_cast<int>(spell->GetCastingType())];
 		if (!castingName) castingName = "Error/Unknown";
+
 		auto deliveryName = deliveryNames[static_cast<int>(spell->GetDelivery())];
 		if (!deliveryName) deliveryName = "Error/Unknown";
 
-		REX::INFO("Casting type: {}\nDelivery: {}", castingName, deliveryName);
-		if (!spell) continue;
+		auto spellType = spellTypeNames[static_cast<int>(spell->GetSpellType())];
+		if (!spellType) spellType = "Error/Unknown";
 
+		REX::INFO("Casting type: {}\nDelivery: {}", castingName, deliveryName);
+		REX::INFO("Spell type: {}", spellType);
+		
 		for (auto effect : spell->effects)
 		{
 			if (!effect || !effect->baseEffect || strlen(effect->baseEffect->GetFullName()) == 0) continue;
