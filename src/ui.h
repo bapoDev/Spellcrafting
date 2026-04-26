@@ -21,7 +21,5 @@ namespace UI {
 
 		static void Register();
 		static void Toggle();
-
-		~SpellcraftingMenu() override;
 	};
 };

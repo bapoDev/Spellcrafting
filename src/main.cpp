@@ -4,6 +4,7 @@
 #include "utils.h"
 #include "ui.h"
 #include "hooks.h"
+#include "globals.h"
 
 
 void WelcomeMessage()
@@ -37,6 +38,7 @@ void OnMessage(SKSE::MessagingInterface::Message* message)
 				WelcomeMessage();
 				UI::SpellcraftingMenu::Register();
 				//DumpEveryPlayerEffect();
+				globals::isInitialized = true;
 			});
 	}
 }

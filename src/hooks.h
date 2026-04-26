@@ -7,6 +7,7 @@
 #include <imgui_impl_dx11.h>
 
 #include "ui.h"
+#include "globals.h"
 
 extern IMGUI_IMPL_API LRESULT ImGui_ImplWin32_WndProcHandler(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
 

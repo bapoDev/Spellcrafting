@@ -7,6 +7,23 @@
 
 #include "utils.h"
 
+static const RE::MagicSystem::CastingType castingTypeList[] = { 
+	RE::MagicSystem::CastingType::kConcentration, 
+	RE::MagicSystem::CastingType::kConstantEffect, 
+	RE::MagicSystem::CastingType::kFireAndForget, 
+	RE::MagicSystem::CastingType::kScroll
+};
+
+static const RE::MagicSystem::Delivery deliveryNames[] = { 
+	RE::MagicSystem::Delivery::kAimed,
+	RE::MagicSystem::Delivery::kNone,
+	RE::MagicSystem::Delivery::kSelf,
+	RE::MagicSystem::Delivery::kTargetActor,
+	RE::MagicSystem::Delivery::kTargetLocation,
+	RE::MagicSystem::Delivery::kTouch
+};
+
+
 void UI::Init_ImGui()
 {
 	ImGui::CreateContext();
@@ -31,7 +48,7 @@ void UI::Render_Menu()
 
 	static auto effects = GetPlayerKnownEffects();
 	static int effect_selected_idx = 0;
-	static int magnitude = 0;
+	static float magnitude = 0.0f;
 	static int area = 0;
 	static int duration = 0;
 	static char buf[100] = "";
@@ -69,16 +86,16 @@ void UI::Render_Menu()
 		ImGui::EndListBox();
 	}
 
-	const char* castingTypeList[] = { "Self", "Touch", "Aimed", "Target Actor", "Target Location", "Total" };
+	
 	static int castingType_selected_idx = 0;
 
-	const char* defaultCT = castingTypeList[castingType_selected_idx];
-	if (ImGui::BeginCombo("Casting Type", defaultCT))
+	const auto defaultCT = castingTypeList[castingType_selected_idx];
+	if (ImGui::BeginCombo("Casting Type", GetCastTypeName(defaultCT)))
 	{
 		for (int n = 0; n < IM_COUNTOF(castingTypeList); n++)
 		{
 			const bool is_selected = (castingType_selected_idx == n);
-			if (ImGui::Selectable(castingTypeList[n], is_selected))
+			if (ImGui::Selectable(GetCastTypeName(castingTypeList[n]), is_selected))
 				castingType_selected_idx = n;
 
 			if (is_selected)
@@ -87,16 +104,15 @@ void UI::Render_Menu()
 		ImGui::EndCombo();
 	}
 
-	const char* deliveryList[] = { "Constant Effect", "Fire and Forget", "Concentration" };
 	static int delivery_selected_idx = 0;
 
-	const char* defaultDelivery = deliveryList[delivery_selected_idx];
-	if (ImGui::BeginCombo("Delivery", defaultDelivery))
+	const auto defaultDelivery = deliveryNames[delivery_selected_idx];
+	if (ImGui::BeginCombo("Delivery", GetDeliveryName(defaultDelivery)))
 	{
-		for (int n = 0; n < IM_COUNTOF(deliveryList); n++)
+		for (int n = 0; n < IM_COUNTOF(deliveryNames); n++)
 		{
 			const bool is_selected = (delivery_selected_idx == n);
-			if (ImGui::Selectable(deliveryList[n], is_selected))
+			if (ImGui::Selectable(GetDeliveryName(deliveryNames[n]), is_selected))
 				delivery_selected_idx = n;
 
 			if (is_selected)
@@ -106,35 +122,34 @@ void UI::Render_Menu()
 	}
 
 	
-	ImGui::SliderInt("Magnitude", &magnitude, 0, 100);
-	ImGui::SliderInt("Area", &area, 0, 100);
-	ImGui::SliderInt("Duration", &duration, 0, 100);
+	ImGui::SliderFloat("Magnitude", &magnitude, 0, 1000);
+	ImGui::SliderInt("Area", &area, 0, 1000);
+	ImGui::SliderInt("Duration", &duration, 0, 1000);
 
 
 	if (ImGui::Button("Create Spell")) {
 		CreateSpell(buf,
 			effects[effect_selected_idx],
-			static_cast<RE::MagicSystem::CastingType>(castingType_selected_idx),
-			static_cast<RE::MagicSystem::Delivery>(delivery_selected_idx),
+			castingTypeList[castingType_selected_idx],
+			deliveryNames[delivery_selected_idx],
 			magnitude,
 			area,
 			duration
 		);
+		UI::SpellcraftingMenu::Toggle();
+		RE::SendHUDMessage::ShowHUDMessage("%s has been added.", buf);
 	}
 
-	if (ImGui::Button("Close Menu"))
+	if (ImGui::Button("Cancel"))
 		UI::SpellcraftingMenu::Toggle();
-	
-
-	if (ImGui::Button("Dump All Effects in log"))
-		DumpEveryPlayerEffect();
 
 	ImGui::End();
 }
 
+
+
 UI::SpellcraftingMenu::SpellcraftingMenu()
 {
-	REX::INFO(">>> Dummy Menu CONSTRUCTED! <<<");
 	menuFlags.set(
 		RE::UI_MENU_FLAGS::kUpdateUsesCursor,
 		RE::UI_MENU_FLAGS::kRequiresUpdate,
@@ -173,10 +188,6 @@ void UI::SpellcraftingMenu::Toggle()
 		msgQueue->AddMessage(MENU_NAME, RE::UI_MESSAGE_TYPE::kHide, nullptr);
 		isOpen = false;
 	}
-}
-
-UI::SpellcraftingMenu::~SpellcraftingMenu() {
-	REX::INFO(">>> Dummy Menu DESTROYED! <<<");
 }
 
 // All the code following this line was taken from Meridiano : https://github.com/Meridiano

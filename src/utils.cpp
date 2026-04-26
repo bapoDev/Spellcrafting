@@ -4,27 +4,38 @@ static const char* castingNames[] = { "Self", "Touch", "Aimed", "TargetActor", "
 static const char* deliveryNames[] = { "ConstantEffect", "FireAndForget", "Concentration", "Scroll" };
 static const char* spellTypeNames[] = { "kSpell", "kDisease", "kPower", "kLesserPower", "kAbility", "kPoison", "kEnchantment", "kPotion" };
 
+static const auto eitherHand = RE::TESForm::LookupByID<RE::BGSEquipSlot>(0x13F44);
 
-void CreateSpell(const char* name, RE::EffectSetting* effect, RE::MagicSystem::CastingType castingType, RE::MagicSystem::Delivery delivery, int magnitude, int area, int duration)
+void CreateSpell(const char* name, RE::EffectSetting* effect, RE::MagicSystem::CastingType castingType, RE::MagicSystem::Delivery delivery, float magnitude, int area, int duration)
 {
-	RE::PlayerCharacter* player = RE::PlayerCharacter::GetSingleton();
+	RE::BGSPerk* perk = RE::TESForm::LookupByID<RE::BGSPerk>(0xC44BB); // Auto-calculate later
+	//RE::BGSEquipSlot* slot = RE::TESForm::LookupByID<RE::BGSEquipSlot>(0x13F44);
+
 	auto spellFactory = RE::IFormFactory::GetConcreteFormFactoryByType<RE::SpellItem>();
 	RE::SpellItem* newSpell = spellFactory->Create();
 	auto newEffect = new RE::Effect();
+	
+	//effect->data.castingType = castingType;
+	//effect->data.delivery = delivery;
+	
+	newEffect->baseEffect = effect; // check
+	newEffect->SetDuration(duration); // to test
+	newEffect->SetMagnitude(magnitude); // to test
+	newEffect->baseEffect->data.spellmakingArea = area;
 
-	effect->data.castingType = castingType;
-	effect->data.delivery = delivery;
+	newSpell->SetFullName(name); // check
+	newSpell->data.spellType = RE::MagicSystem::SpellType::kSpell; // check
 
-	newEffect->baseEffect = effect;
-	newEffect->SetDuration(duration);
-	newEffect->SetMagnitude(magnitude);
+	newSpell->effects.push_front(newEffect); 
 
-	newSpell->SetFullName(name);
-	newSpell->effects.push_front(newEffect);
 	newSpell->SetCastingType(castingType);
 	newSpell->SetDelivery(delivery);
 
-
+	//newSpell->equipSlot = slot;
+	newSpell->data.chargeTime = 0.50000F;
+	newSpell->data.castDuration = 0.0F;
+	newSpell->data.range = 0.0F;
+	newSpell->data.castingPerk = perk;
 
 	RE::PlayerCharacter::GetSingleton()->AddSpell(newSpell);
 }
@@ -61,47 +72,36 @@ std::vector<RE::EffectSetting*> GetPlayerKnownEffects()
 	return effectsVector;
 }
 
-
-/**
-* Dev function - Logs every spell effect with info on them on Spellcrafting.log
-* It includes : Spells, some Scrolls, Shouts, and probably shrine effects.
-* Please note that only the player's effects are being logged because I try this with a 100% save with everything unlocked
-* and I don't know how to enumerate all the effects in the game.
-*/
-void DumpEveryPlayerEffect()
+const char* GetDeliveryName(RE::MagicSystem::Delivery delivery) 
 {
-	auto* player = RE::PlayerCharacter::GetSingleton();
-	if (!player) return;
-
-	for (auto spell : player->addedSpells)
-	{
-		if (!spell) continue;
-		if (spell->GetSpellType() == RE::MagicSystem::SpellType::kSpell) continue;
-		REX::INFO("--------------------------------------------------------------------------------------------");
-		REX::INFO("Spell Name: {}", spell->GetFullName());
-
-		auto castingName = castingNames[static_cast<int>(spell->GetCastingType())];
-		if (!castingName) castingName = "Error/Unknown";
-
-		auto deliveryName = deliveryNames[static_cast<int>(spell->GetDelivery())];
-		if (!deliveryName) deliveryName = "Error/Unknown";
-
-		auto spellType = spellTypeNames[static_cast<int>(spell->GetSpellType())];
-		if (!spellType) spellType = "Error/Unknown";
-
-		REX::INFO("Casting type: {}\nDelivery: {}", castingName, deliveryName);
-		REX::INFO("Spell type: {}", spellType);
-		
-		for (auto effect : spell->effects)
-		{
-			if (!effect || !effect->baseEffect || strlen(effect->baseEffect->GetFullName()) == 0) continue;
-			REX::INFO("Effect Name: {}", effect->baseEffect->GetFullName());
-			REX::INFO("Effect info: \n\t Area: {}\n\t Duration: {}\n\t Magnitude: {}", effect->GetArea(), effect->GetDuration(), effect->GetMagnitude());
-			auto effectCast = castingNames[static_cast<int>(effect->baseEffect->data.castingType)];
-			if (!effectCast) effectCast = "Error/Unknown";
-			auto effectDelivery = deliveryNames[static_cast<int>(effect->baseEffect->data.delivery)];
-			if (!effectDelivery) effectDelivery = "Error/Unknown";
-			REX::INFO("Effect Types: \n\t Casting Type: {}\n\t Delivery: {}", effectCast, effectDelivery);
-		}
+	switch (delivery) {
+	case RE::MagicSystem::Delivery::kAimed:
+		return "Aimed";
+	case RE::MagicSystem::Delivery::kSelf:
+		return "Self";
+	case RE::MagicSystem::Delivery::kTargetActor:
+		return "Target Actor";
+	case RE::MagicSystem::Delivery::kTouch:
+		return "Touch";
+	case RE::MagicSystem::Delivery::kTargetLocation:
+		return "Target Location";
+	case RE::MagicSystem::Delivery::kNone:
+		return "None";
 	}
+	return "Error/Unknown";
+}
+
+const char* GetCastTypeName(RE::MagicSystem::CastingType ct) 
+{
+	switch (ct) {
+	case RE::MagicSystem::CastingType::kConcentration:
+		return "Concentration";
+	case RE::MagicSystem::CastingType::kConstantEffect:
+		return "Constant Effect";
+	case RE::MagicSystem::CastingType::kFireAndForget:
+		return "Fire and Forget";
+	case RE::MagicSystem::CastingType::kScroll:
+		return "Scroll";
+	}
+	return "Error/Unknown";
 }
