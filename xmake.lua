@@ -9,6 +9,7 @@ set_languages("c++23")
 set_warnings("allextra")
 
 add_requires("imgui", {configs = {dx11 = true, win32 = true}})
+add_requires("stb")
 
 -- add common rules
 add_rules("mode.debug", "mode.releasedbg")
@@ -28,3 +29,4 @@ target("Spellcrafting")
     add_includedirs("src")
     set_pcxxheader("src/pch.h")
     add_packages("imgui")
+    add_packages("stb")

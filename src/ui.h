@@ -4,9 +4,13 @@
 #include <Windows.h>
 
 namespace UI {
+	inline ID3D11ShaderResourceView* g_SliderHandleSRV = nullptr;
+
 	inline bool isOpen = false;
 	inline WNDPROC oWndProc = nullptr;
 	inline ImGuiIO* ioShared = nullptr;
+	inline int g_HandleWidth = 0;
+	inline int g_HandleHeight = 0;
 
 	void Init_ImGui();
 	void Render_Menu();

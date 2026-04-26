@@ -6,6 +6,8 @@
 #include <d3d11.h>
 
 #include "utils.h"
+#include "imgui_style.h"
+#include "stb_impl.h"
 
 static const RE::MagicSystem::CastingType castingTypeList[] = { 
 	RE::MagicSystem::CastingType::kConcentration, 
@@ -26,6 +28,15 @@ static const RE::MagicSystem::Delivery deliveryNames[] = {
 
 void UI::Init_ImGui()
 {
+	auto* renderer = RE::BSGraphics::Renderer::GetSingleton();
+	auto* device = reinterpret_cast<ID3D11Device*>(renderer->data.forwarder);
+	auto* context = reinterpret_cast<ID3D11DeviceContext*>(renderer->data.context);
+	auto* window = renderer->data.renderWindows->hWnd;
+
+	bool success = LoadTextureFromFile(device, "Data/Textures/Spellcrafting/handle.png", &g_SliderHandleSRV, &g_HandleWidth, &g_HandleHeight);
+
+	if (!success) return;
+
 	ImGui::CreateContext();
 	ImGuiIO& io = ImGui::GetIO();
 	io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
@@ -33,10 +44,7 @@ void UI::Init_ImGui()
 
 	UI::ioShared = &io;
 
-	auto* renderer = RE::BSGraphics::Renderer::GetSingleton();
-	auto* device = reinterpret_cast<ID3D11Device*>(renderer->data.forwarder);
-	auto* context = reinterpret_cast<ID3D11DeviceContext*>(renderer->data.context);
-	auto* window = renderer->data.renderWindows->hWnd;
+	
 
 	ImGui_ImplDX11_Init(device, context);
 	ImGui_ImplWin32_Init(window);
@@ -121,8 +129,9 @@ void UI::Render_Menu()
 		ImGui::EndCombo();
 	}
 
-	
-	ImGui::SliderFloat("Magnitude", &magnitude, 0, 1000);
+	Style::CustomSlider("Magnitude", &magnitude, 0, 1000);
+
+	//ImGui::SliderFloat("Magnitude", &magnitude, 0, 1000);
 	ImGui::SliderInt("Area", &area, 0, 1000);
 	ImGui::SliderInt("Duration", &duration, 0, 1000);
 

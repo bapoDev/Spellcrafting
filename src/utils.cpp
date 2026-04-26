@@ -9,14 +9,10 @@ static const auto eitherHand = RE::TESForm::LookupByID<RE::BGSEquipSlot>(0x13F44
 void CreateSpell(const char* name, RE::EffectSetting* effect, RE::MagicSystem::CastingType castingType, RE::MagicSystem::Delivery delivery, float magnitude, int area, int duration)
 {
 	RE::BGSPerk* perk = RE::TESForm::LookupByID<RE::BGSPerk>(0xC44BB); // Auto-calculate later
-	//RE::BGSEquipSlot* slot = RE::TESForm::LookupByID<RE::BGSEquipSlot>(0x13F44);
 
 	auto spellFactory = RE::IFormFactory::GetConcreteFormFactoryByType<RE::SpellItem>();
 	RE::SpellItem* newSpell = spellFactory->Create();
 	auto newEffect = new RE::Effect();
-	
-	//effect->data.castingType = castingType;
-	//effect->data.delivery = delivery;
 	
 	newEffect->baseEffect = effect; // check
 	newEffect->SetDuration(duration); // to test
